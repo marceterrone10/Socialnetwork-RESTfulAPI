@@ -1,14 +1,22 @@
 package main
 
-import "log"
+import (
+	"log"
+
+	"github.com/marceterrone10/social/internal/env"
+	"github.com/marceterrone10/social/internal/store"
+)
 
 func main() {
 	cfg := config{
-		addr: ":8080",
+		addr: env.GetString("ADDR", ":8080"),
 	}
+
+	store := store.NewStorage(nil) // instancia del store y creo un nuevo storage
 
 	app := &application{
 		config: cfg,
+		store:  store, // paso el store a la aplicación
 	}
 
 	// mount the routes for the API

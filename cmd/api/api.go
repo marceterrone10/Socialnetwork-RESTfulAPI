@@ -7,10 +7,12 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/marceterrone10/social/internal/store"
 )
 
 type application struct {
 	config config
+	store  store.Storage // inyeccion de dependencias, paso el store a la aplicación
 }
 
 type config struct {
