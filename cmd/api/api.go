@@ -17,6 +17,14 @@ type application struct {
 
 type config struct {
 	addr string
+	db   dbConfig
+}
+
+type dbConfig struct {
+	addr         string
+	maxOpenConns int
+	maxIdleConns int
+	maxLifetime  string
 }
 
 /* Mount the routes for the API */
