@@ -8,6 +8,8 @@ import (
 	"github.com/marceterrone10/social/internal/store"
 )
 
+const version = "1.0.0"
+
 func main() {
 	// seteo de la app
 	cfg := config{
@@ -18,6 +20,7 @@ func main() {
 			maxIdleConns: env.GetInt("DB_MAX_IDLE_CONNS", 25),
 			maxLifetime:  env.GetString("DB_MAX_LIFETIME", "1h"),
 		},
+		env: env.GetString("ENV", "development"),
 	}
 
 	// instancia de la DB

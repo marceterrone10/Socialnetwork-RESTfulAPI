@@ -18,6 +18,7 @@ type application struct {
 type config struct {
 	addr string
 	db   dbConfig
+	env  string
 }
 
 type dbConfig struct {
@@ -42,6 +43,7 @@ func (app *application) mount() *chi.Mux {
 	// route the API to the healthcheck handler
 	r.Route("/v1", func(r chi.Router) {
 		r.Get("/healthcheck", app.healthcheckHandler)
+
 	})
 	return r
 }
