@@ -48,7 +48,11 @@ func (app *application) mount() *chi.Mux {
 			r.Post("/", app.createPostHandler)
 
 			r.Route("/{id}", func(r chi.Router) {
+				r.Use(app.postsContextMiddleware)
 				r.Get("/", app.getPostHandler)
+				r.Delete("/", app.deletePostHandler)
+				r.Patch("/", app.updatePostHandler)
+
 			})
 		})
 	})
