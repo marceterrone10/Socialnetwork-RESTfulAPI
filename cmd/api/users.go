@@ -31,3 +31,7 @@ func (app *application) getUserHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 }
+
+func (app *application) followUserHandler(w http.ResponseWriter, r *http.Request) {}
+
+func (app *application) unfollowUserHandler(w http.ResponseWriter, r *http.Request) {}
