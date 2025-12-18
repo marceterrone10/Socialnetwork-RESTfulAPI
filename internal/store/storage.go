@@ -25,6 +25,7 @@ type UserRepository interface { // aca vamos a tener las operaciones que vamos a
 
 type CommentRepository interface {
 	GetByPostId(context.Context, int64) (*[]Comment, error)
+	Create(context.Context, *Comment) error
 }
 
 type Storage struct { // inyección de dependencias de los repos

@@ -20,8 +20,8 @@ type UsersStore struct {
 func (s *UsersStore) Create(ctx context.Context, user *User) error {
 	query := `INSERT INTO users (username, email, password) VALUES ($1, $2, $3) RETURNING id, created_at`
 
-	ctx, cancel := context.WithTimeout(ctx, QueryTimeoutDuration)
-	defer cancel()
+	ctx, cancel := context.WithTimeout(ctx, QueryTimeoutDuration) // con esto le decimos que el contexto se cierre despues de 5 segundos si no se completa la query
+	defer cancel()                                                // siempre se cierra el contexto para no fugar memoria
 	err := s.db.QueryRowContext(
 		ctx,
 		query,

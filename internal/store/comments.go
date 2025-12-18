@@ -53,3 +53,38 @@ func (s *CommentsStore) GetByPostId(ctx context.Context, postId int64) (*[]Comme
 }
 
 // Los slices son estructuras de datos que se utilizan para almacenar una colección de elementos del mismo tipo.
+
+func (s *CommentsStore) Create(ctx context.Context, comment *Comment) error {
+	query :=
+		`
+	INSERT INTO comments (post_id, user_id, content) VALUES ($1, $2, $3) RETURNING id, created_at;
+	`
+	ctx, cancel := context.WithTimeout(ctx, QueryTimeoutDuration)
+	defer cancel()
+	err := s.db.QueryRowContext(
+		ctx,
+		query,
+		comment.PostID,
+		comment.UserID,
+		comment.Content,
+	).Scan(&comment.ID, &comment.CreatedAt)
+	if err != nil {
+		return err
+	}
+
+	userQuery :=
+		`
+	SELECT id, username, email FROM users WHERE id = $1;
+	`
+	comment.User = User{}
+	err = s.db.QueryRowContext(
+		ctx,
+		userQuery,
+		comment.UserID,
+	).Scan(&comment.User.ID, &comment.User.Username, &comment.User.Email)
+	if err != nil {
+		return err
+	}
+	return nil
+
+}
