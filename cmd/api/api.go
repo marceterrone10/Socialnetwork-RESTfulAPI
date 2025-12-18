@@ -58,6 +58,11 @@ func (app *application) mount() *chi.Mux {
 		r.Route("/comments", func(r chi.Router) {
 			r.Post("/", app.createCommentHandler)
 		})
+		r.Route("/users", func(r chi.Router) {
+			r.Route("/{id}", func(r chi.Router) {
+				r.Get("/", app.getUserHandler)
+			})
+		})
 	})
 	return r
 }
