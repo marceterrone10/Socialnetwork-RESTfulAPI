@@ -27,6 +27,8 @@ func (s *CommentsStore) GetByPostId(ctx context.Context, postId int64) (*[]Comme
 	ORDER BY c.created_at DESC;
 	`
 
+	ctx, cancel := context.WithTimeout(ctx, QueryTimeoutDuration)
+	defer cancel()
 	rows, err := s.db.QueryContext(ctx, query, postId) // variable rows para obtener las filas de la query que se ejecuta, se ejecuta conectandola a la DB y pasandole el contexto.
 	if err != nil {
 		return nil, err

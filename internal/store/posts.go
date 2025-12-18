@@ -28,6 +28,8 @@ func (s *PostsStore) Create(ctx context.Context, post *Post) error { // se pasa 
 	VALUES ($1, $2, $3, $4) RETURNING id, created_at, updated_at;
 	`
 
+	ctx, cancel := context.WithTimeout(ctx, QueryTimeoutDuration)
+	defer cancel()
 	err := s.db.QueryRowContext( // si pasamos contexto al la funcion, tenemos que usar QueryRowContext en lugar de QueryRow
 		ctx,
 		query,
@@ -50,6 +52,8 @@ func (s *PostsStore) GetById(ctx context.Context, id int64) (*Post, error) {
 	var post Post
 	query := `SELECT id, title, content, user_id, tags, created_at, updated_at FROM posts WHERE id = $1;`
 
+	ctx, cancel := context.WithTimeout(ctx, QueryTimeoutDuration)
+	defer cancel()
 	err := s.db.QueryRowContext(
 		ctx,
 		query,
@@ -71,6 +75,8 @@ func (s *PostsStore) Delete(ctx context.Context, id int64) (*Post, error) {
 	var post Post
 	query := `DELETE FROM posts WHERE id = $1 RETURNING id, title, content, user_id, tags, created_at, updated_at;`
 
+	ctx, cancel := context.WithTimeout(ctx, QueryTimeoutDuration)
+	defer cancel()
 	err := s.db.QueryRowContext(
 		ctx,
 		query,
@@ -101,6 +107,9 @@ func (s *PostsStore) Update(ctx context.Context, post *Post) (*Post, error) {
 	SET title = $1, content = $2
 	WHERE id = $3
 	`
+	ctx, cancel := context.WithTimeout(ctx, QueryTimeoutDuration)
+	defer cancel()
+
 	_, err := s.db.ExecContext(ctx, query, post.Title, post.Content, post.ID)
 	if err != nil {
 		return nil, err

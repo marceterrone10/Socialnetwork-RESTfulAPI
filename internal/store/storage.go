@@ -4,10 +4,12 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"time"
 )
 
 var (
-	ErrNotFound = errors.New("record not found")
+	ErrNotFound                        = errors.New("record not found")
+	QueryTimeoutDuration time.Duration = 5 * time.Second
 )
 
 type PostRepository interface { // aca vamos a tener las operaciones que vamos a hacer sobre los posts
