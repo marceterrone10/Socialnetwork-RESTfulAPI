@@ -29,10 +29,16 @@ type CommentRepository interface {
 	Create(context.Context, *Comment) error
 }
 
+type FollowRepository interface {
+	Follow(context.Context, int64, int64) error
+	Unfollow(context.Context, int64, int64) error
+}
+
 type Storage struct { // inyección de dependencias de los repos
 	Posts    PostRepository
 	Users    UserRepository
 	Comments CommentRepository
+	Follows  FollowRepository
 }
 
 func NewStorage(db *sql.DB) Storage {
@@ -40,5 +46,6 @@ func NewStorage(db *sql.DB) Storage {
 		Posts:    &PostsStore{db},
 		Users:    &UsersStore{db},
 		Comments: &CommentsStore{db},
+		Follows:  &FollowsStore{db},
 	}
 }
