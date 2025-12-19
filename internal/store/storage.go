@@ -17,7 +17,7 @@ type PostRepository interface { // aca vamos a tener las operaciones que vamos a
 	GetById(context.Context, int64) (*Post, error)
 	Delete(context.Context, int64) (*Post, error)
 	Update(context.Context, *Post) (*Post, error)
-	GetFeed(context.Context, int64) ([]*PostWithMetadata, error)
+	GetFeed(context.Context, int64, PaginatedQuery) ([]*PostWithMetadata, error)
 }
 
 type UserRepository interface { // aca vamos a tener las operaciones que vamos a hacer sobre los usuarios

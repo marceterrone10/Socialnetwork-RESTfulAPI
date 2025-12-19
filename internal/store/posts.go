@@ -29,7 +29,7 @@ type PostsStore struct {
 	db *sql.DB
 }
 
-func (s *PostsStore) GetFeed(ctx context.Context, userId int64) ([]*PostWithMetadata, error) {
+func (s *PostsStore) GetFeed(ctx context.Context, userId int64, fq PaginatedQuery) ([]*PostWithMetadata, error) {
 	query := `
 	SELECT p.id, p.title, p.content, p.user_id, p.tags, p.created_at, p.updated_at, COUNT(c.id) as comment_count, u.id as user_id, u.username, u.email
 	FROM posts p
@@ -37,12 +37,13 @@ func (s *PostsStore) GetFeed(ctx context.Context, userId int64) ([]*PostWithMeta
 	JOIN users u ON u.id = p.user_id
 	WHERE p.user_id = $1 OR p.user_id IN (SELECT follower_id FROM followers WHERE user_id = $1)
 	GROUP BY p.id, u.id
-	ORDER BY p.created_at DESC;
+	ORDER BY p.created_at ` + fq.Sort + `
+	LIMIT $2 OFFSET $3;
 	`
 	ctx, cancel := context.WithTimeout(ctx, QueryTimeoutDuration)
 	defer cancel()
 
-	rows, err := s.db.QueryContext(ctx, query, userId)
+	rows, err := s.db.QueryContext(ctx, query, userId, fq.Limit, fq.Offset)
 	if err != nil {
 		return nil, err
 	}
