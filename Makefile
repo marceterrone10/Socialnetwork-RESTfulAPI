@@ -15,3 +15,7 @@ migrate-down:
 
 # Alias para mantener compatibilidad
 migration: migrate-create
+
+.PHONY: generate-docs
+generate-docs:
+	@swag init -g ./api/main.go -d cmd,internal && swag fmt
