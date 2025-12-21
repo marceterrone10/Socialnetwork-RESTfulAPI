@@ -1,7 +1,72 @@
 basePath: /v1
 definitions:
+  main.CreatePostPayload:
+    properties:
+      content:
+        maxLength: 1000
+        type: string
+      tags:
+        items:
+          type: string
+        type: array
+      title:
+        maxLength: 100
+        type: string
+    required:
+    - content
+    - title
+    type: object
   main.FollowUser:
     properties:
+      user_id:
+        type: integer
+    type: object
+  main.UpdatePostPayload:
+    properties:
+      content:
+        maxLength: 1000
+        type: string
+      title:
+        maxLength: 100
+        type: string
+    type: object
+  store.Comment:
+    properties:
+      content:
+        type: string
+      created_at:
+        type: string
+      id:
+        type: integer
+      post_id:
+        type: integer
+      user:
+        $ref: '#/definitions/store.User'
+      user_id:
+        type: integer
+    type: object
+  store.Post:
+    properties:
+      comments:
+        items:
+          $ref: '#/definitions/store.Comment'
+        type: array
+      content:
+        type: string
+      created_at:
+        type: string
+      id:
+        type: integer
+      tags:
+        items:
+          type: string
+        type: array
+      title:
+        type: string
+      updated_at:
+        type: string
+      user:
+        $ref: '#/definitions/store.User'
       user_id:
         type: integer
     type: object
@@ -28,6 +93,141 @@ info:
   termsOfService: http://swagger.io/terms/
   title: Social API
 paths:
+  /healthcheck:
+    get:
+      description: Check if the API is running and get system information
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Returns status, environment, and version
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal server error
+          schema: {}
+      summary: Healthcheck the API
+      tags:
+      - Health
+  /posts:
+    post:
+      consumes:
+      - application/json
+      description: Create a new post with a title, content, and tags
+      parameters:
+      - description: Post payload
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/main.CreatePostPayload'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Post created successfully
+          schema:
+            $ref: '#/definitions/store.Post'
+        "400":
+          description: Bad request
+          schema: {}
+        "500":
+          description: Internal server error
+          schema: {}
+      summary: Create a new post
+      tags:
+      - Posts
+  /posts/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete a post by ID
+      parameters:
+      - description: Post ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: Post deleted successfully
+        "400":
+          description: Bad request
+          schema: {}
+        "404":
+          description: Post not found
+          schema: {}
+        "500":
+          description: Internal server error
+          schema: {}
+      summary: Delete a post by ID
+      tags:
+      - Posts
+    get:
+      consumes:
+      - application/json
+      description: Get a post by ID
+      parameters:
+      - description: Post ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Post found
+          schema:
+            $ref: '#/definitions/store.Post'
+        "400":
+          description: Bad request
+          schema: {}
+        "404":
+          description: Post not found
+          schema: {}
+        "500":
+          description: Internal server error
+          schema: {}
+      summary: Get a post by ID
+      tags:
+      - Posts
+    patch:
+      consumes:
+      - application/json
+      description: Update a post by ID
+      parameters:
+      - description: Post ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Post payload
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/main.UpdatePostPayload'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Post updated successfully
+          schema:
+            $ref: '#/definitions/store.Post'
+        "400":
+          description: Bad request
+          schema: {}
+        "500":
+          description: Internal server error
+          schema: {}
+      summary: Update a post by ID
+      tags:
+      - Posts
   /users/{id}:
     get:
       consumes:
@@ -115,10 +315,13 @@ paths:
           schema:
             type: string
         "400":
-          description: Bad Request
+          description: User payload missing
+          schema: {}
+        "404":
+          description: User not found
           schema: {}
         "500":
-          description: Internal Server Error
+          description: Internal server error
           schema: {}
       security:
       - ApiKeyAuth: []

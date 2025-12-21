@@ -20,6 +20,18 @@ type CreatePostPayload struct {
 	Tags    []string `json:"tags"`
 }
 
+// CreatePost godoc
+//
+//	@Summary		Create a new post
+//	@Description	Create a new post with a title, content, and tags
+//	@Tags			Posts
+//	@Accept			json
+//	@Produce		json
+//	@Param			payload	body		CreatePostPayload	true	"Post payload"
+//	@Success		201		{object}	store.Post			"Post created successfully"
+//	@Failure		400		{object}	error				"Bad request"
+//	@Failure		500		{object}	error				"Internal server error"
+//	@Router			/posts [post]
 func (app *application) createPostHandler(w http.ResponseWriter, r *http.Request) {
 
 	var payload CreatePostPayload
@@ -53,6 +65,19 @@ func (app *application) createPostHandler(w http.ResponseWriter, r *http.Request
 	} // escribimos el post creado en el response
 }
 
+// GetPost godoc
+//
+//	@Summary		Get a post by ID
+//	@Description	Get a post by ID
+//	@Tags			Posts
+//	@Accept			json
+//	@Produce		json
+//	@Param			id	path		int			true	"Post ID"
+//	@Success		200	{object}	store.Post	"Post found"
+//	@Failure		400	{object}	error		"Bad request"
+//	@Failure		404	{object}	error		"Post not found"
+//	@Failure		500	{object}	error		"Internal server error"
+//	@Router			/posts/{id} [get]
 func (app *application) getPostHandler(w http.ResponseWriter, r *http.Request) {
 	post := getPostFromCtx(r.Context())
 
@@ -70,6 +95,19 @@ func (app *application) getPostHandler(w http.ResponseWriter, r *http.Request) {
 
 }
 
+// DeletePost godoc
+//
+//	@Summary		Delete a post by ID
+//	@Description	Delete a post by ID
+//	@Tags			Posts
+//	@Accept			json
+//	@Produce		json
+//	@Param			id	path	int	true	"Post ID"
+//	@Success		204	"Post deleted successfully"
+//	@Failure		400	{object}	error	"Bad request"
+//	@Failure		404	{object}	error	"Post not found"
+//	@Failure		500	{object}	error	"Internal server error"
+//	@Router			/posts/{id} [delete]
 func (app *application) deletePostHandler(w http.ResponseWriter, r *http.Request) {
 	idParam := chi.URLParam(r, "id")
 	id, err := strconv.ParseInt(idParam, 10, 64)
@@ -98,6 +136,19 @@ type UpdatePostPayload struct {
 	Content *string `json:"content" validate:"omitempty,max=1000"`
 }
 
+// UpdatePost godoc
+//
+//	@Summary		Update a post by ID
+//	@Description	Update a post by ID
+//	@Tags			Posts
+//	@Accept			json
+//	@Produce		json
+//	@Param			id		path		int					true	"Post ID"
+//	@Param			payload	body		UpdatePostPayload	true	"Post payload"
+//	@Success		200		{object}	store.Post			"Post updated successfully"
+//	@Failure		400		{object}	error				"Bad request"
+//	@Failure		500		{object}	error				"Internal server error"
+//	@Router			/posts/{id} [patch]
 func (app *application) updatePostHandler(w http.ResponseWriter, r *http.Request) {
 	post := getPostFromCtx(r.Context())
 

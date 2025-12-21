@@ -85,8 +85,9 @@ func (app *application) followUserHandler(w http.ResponseWriter, r *http.Request
 //	@Param			userID	path		int			true	"User ID"
 //	@Param			body	body		FollowUser	true	"Unfollow user payload"
 //	@Success		200		{string}	string		"User unfollowed successfully"
-//	@Failure		400		{object}	error
-//	@Failure		500		{object}	error
+//	@Failure		400		{object}	error		"User payload missing"
+//	@Failure		500		{object}	error		"Internal server error"
+//	@Failure		404		{object}	error		"User not found"
 //	@Security		ApiKeyAuth
 //	@Router			/users/{userID}/unfollow [put]
 func (app *application) unfollowUserHandler(w http.ResponseWriter, r *http.Request) {
