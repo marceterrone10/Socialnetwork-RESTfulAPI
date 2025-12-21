@@ -328,6 +328,42 @@ paths:
       summary: Unfollow a user
       tags:
       - Users
+  /users/feed:
+    get:
+      consumes:
+      - application/json
+      description: Get a feed of posts for the current user
+      parameters:
+      - description: Limit the number of posts returned
+        in: query
+        name: limit
+        type: integer
+      - description: Offset the number of posts returned
+        in: query
+        name: offset
+        type: integer
+      - description: Sort the posts by created_at in ascending or descending order
+        in: query
+        name: sort
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Feed of posts
+          schema:
+            items:
+              $ref: '#/definitions/store.Post'
+            type: array
+        "400":
+          description: Bad request
+          schema: {}
+        "500":
+          description: Internal server error
+          schema: {}
+      summary: Get a feed of posts
+      tags:
+      - Feed
 securityDefinitions:
   ApiKeyAuth:
     description: Type (Bearer) followed by the token

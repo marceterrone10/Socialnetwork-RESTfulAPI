@@ -1,11 +1,10 @@
 package main
 
 import (
-	"log"
-
 	"github.com/marceterrone10/social/internal/db"
 	"github.com/marceterrone10/social/internal/env"
 	"github.com/marceterrone10/social/internal/store"
+	"go.uber.org/zap"
 )
 
 const version = "1.0.0"
@@ -41,6 +40,10 @@ func main() {
 		env: env.GetString("ENV", "development"),
 	}
 
+	// Logger
+	logger := zap.Must(zap.NewProduction()).Sugar()
+	defer logger.Sync()
+
 	// instancia de la DB
 	database, err := db.New(
 		cfg.db.addr,
@@ -48,11 +51,11 @@ func main() {
 		cfg.db.maxIdleConns,
 		cfg.db.maxLifetime)
 	if err != nil {
-		log.Panicln(err)
+		logger.Panicln(err)
 	}
 
 	defer database.Close()
-	log.Println("Connected to the database")
+	logger.Info("Connected to the database")
 
 	// instancia del store y creo un nuevo storage con la DB
 	storage := store.NewStorage(database)
@@ -61,10 +64,11 @@ func main() {
 	app := &application{
 		config: cfg,
 		store:  storage, // paso el store a la aplicación
+		logger: logger,
 	}
 
 	// mount the routes for the API
 	mux := app.mount()
 
-	log.Fatal(app.serve(mux)) // log the error if the server fails to start
+	logger.Fatal(app.serve(mux)) // log the error if the server fails to start
 }

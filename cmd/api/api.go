@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"log"
 	"net/http"
 	"time"
 
@@ -12,11 +11,13 @@ import (
 	"github.com/marceterrone10/social/docs"
 	"github.com/marceterrone10/social/internal/store"
 	httpSwagger "github.com/swaggo/http-swagger" // http-swagger middleware
+	"go.uber.org/zap"
 )
 
 type application struct {
 	config config
 	store  store.Storage // inyeccion de dependencias, paso el store a la aplicación
+	logger *zap.SugaredLogger
 }
 
 type config struct {
@@ -99,7 +100,7 @@ func (app *application) serve(mux *chi.Mux) error {
 		IdleTimeout:  time.Minute,
 	}
 
-	log.Printf("Starting server on %s", app.config.addr)
+	app.logger.Infow("Starting server", "addr", app.config.addr, "env", app.config.env)
 
 	return srv.ListenAndServe()
 
