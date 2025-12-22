@@ -47,6 +47,21 @@ definitions:
         maxLength: 100
         type: string
     type: object
+  main.UserWithToken:
+    properties:
+      created_at:
+        type: string
+      email:
+        type: string
+      id:
+        type: integer
+      is_active:
+        type: boolean
+      token:
+        type: string
+      username:
+        type: string
+    type: object
   store.Comment:
     properties:
       content:
@@ -95,6 +110,8 @@ definitions:
         type: string
       id:
         type: integer
+      is_active:
+        type: boolean
       username:
         type: string
     type: object
@@ -128,13 +145,19 @@ paths:
         "201":
           description: User registered successfully
           schema:
-            $ref: '#/definitions/store.User'
+            $ref: '#/definitions/main.UserWithToken'
         "400":
           description: Bad request
-          schema: {}
+          schema:
+            additionalProperties:
+              type: string
+            type: object
         "500":
           description: Internal server error
-          schema: {}
+          schema:
+            additionalProperties:
+              type: string
+            type: object
       summary: Register a new user
       tags:
       - Authentication
@@ -373,6 +396,33 @@ paths:
       summary: Unfollow a user
       tags:
       - Users
+  /users/activate/{token}:
+    put:
+      description: Activates/Register a user by invitation token
+      parameters:
+      - description: Invitation token
+        in: path
+        name: token
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: User activated
+          schema:
+            type: string
+        "404":
+          description: Not Found
+          schema: {}
+        "500":
+          description: Internal Server Error
+          schema: {}
+      security:
+      - ApiKeyAuth: []
+      summary: Activates/Register a user
+      tags:
+      - users
   /users/feed:
     get:
       consumes:

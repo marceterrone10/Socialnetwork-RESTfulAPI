@@ -23,7 +23,8 @@ type PostRepository interface { // aca vamos a tener las operaciones que vamos a
 type UserRepository interface { // aca vamos a tener las operaciones que vamos a hacer sobre los usuarios
 	Create(context.Context, *sql.Tx, *User) error
 	GetById(context.Context, int64) (*User, error)
-	CreateInvitation(ctx context.Context, user *User, token string) error
+	CreateInvitation(ctx context.Context, user *User, token string, invitationExp time.Duration) error
+	ActivateUser(ctx context.Context, token string) error
 }
 
 type CommentRepository interface {
@@ -52,6 +53,7 @@ func NewStorage(db *sql.DB) Storage {
 	}
 }
 
+// Funcion reutilizable para ejecutar transacciones en la base de datos
 func withTx(db *sql.DB, ctx context.Context, fn func(*sql.Tx) error) error {
 	tx, err := db.BeginTx(ctx, nil) // comienza la transacción
 	if err != nil {
