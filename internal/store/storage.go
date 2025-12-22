@@ -21,8 +21,9 @@ type PostRepository interface { // aca vamos a tener las operaciones que vamos a
 }
 
 type UserRepository interface { // aca vamos a tener las operaciones que vamos a hacer sobre los usuarios
-	Create(context.Context, *User) error
+	Create(context.Context, *sql.Tx, *User) error
 	GetById(context.Context, int64) (*User, error)
+	CreateInvitation(ctx context.Context, user *User, token string) error
 }
 
 type CommentRepository interface {
@@ -49,4 +50,18 @@ func NewStorage(db *sql.DB) Storage {
 		Comments: &CommentsStore{db},
 		Follows:  &FollowsStore{db},
 	}
+}
+
+func withTx(db *sql.DB, ctx context.Context, fn func(*sql.Tx) error) error {
+	tx, err := db.BeginTx(ctx, nil) // comienza la transacción
+	if err != nil {
+		return err
+	}
+
+	if err := fn(tx); err != nil { // ejecuta la función pasada como argumento
+		_ = tx.Rollback() // si hay un error, cancela la transacción, devuelve el error
+		return err
+	}
+
+	return tx.Commit() // commitea la transacción
 }
