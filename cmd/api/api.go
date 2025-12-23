@@ -9,6 +9,7 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 
 	"github.com/marceterrone10/social/docs"
+	"github.com/marceterrone10/social/internal/mailer"
 	"github.com/marceterrone10/social/internal/store"
 	httpSwagger "github.com/swaggo/http-swagger" // http-swagger middleware
 	"go.uber.org/zap"
@@ -18,6 +19,7 @@ type application struct {
 	config config
 	store  store.Storage // inyeccion de dependencias, paso el store a la aplicación
 	logger *zap.SugaredLogger
+	mailer mailer.Client
 }
 
 type config struct {
@@ -29,7 +31,13 @@ type config struct {
 }
 
 type mailConfig struct {
-	exp time.Duration
+	exp       time.Duration
+	sendGrid  sendGridConfig
+	fromEmail string
+}
+
+type sendGridConfig struct {
+	apiKey string
 }
 
 type dbConfig struct {

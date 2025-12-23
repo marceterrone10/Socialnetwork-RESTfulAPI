@@ -1,8 +1,11 @@
 package main
 
 import (
+	"time"
+
 	"github.com/marceterrone10/social/internal/db"
 	"github.com/marceterrone10/social/internal/env"
+	"github.com/marceterrone10/social/internal/mailer"
 	"github.com/marceterrone10/social/internal/store"
 	"go.uber.org/zap"
 )
@@ -38,6 +41,13 @@ func main() {
 			maxLifetime:  env.GetString("DB_MAX_LIFETIME", "1h"),
 		},
 		env: env.GetString("ENV", "development"),
+		mail: mailConfig{
+			exp:       time.Hour * 24 * 3,
+			fromEmail: env.GetString("FROM_EMAIL", ""),
+			sendGrid: sendGridConfig{
+				apiKey: env.GetString("SENDGRID_API_KEY", ""),
+			},
+		},
 	}
 
 	// Logger
@@ -60,11 +70,15 @@ func main() {
 	// instancia del store y creo un nuevo storage con la DB
 	storage := store.NewStorage(database)
 
+	// instancia del mailer
+	mailer := mailer.NewSendGridMailer(cfg.mail.fromEmail, cfg.mail.sendGrid.apiKey)
+
 	// instancia de la app
 	app := &application{
 		config: cfg,
 		store:  storage, // paso el store a la aplicación
 		logger: logger,
+		mailer: mailer,
 	}
 
 	// mount the routes for the API
