@@ -32,7 +32,7 @@ func (m *SendGridMailer) Send(templateFile, username string, email string, data 
 	from := mail.NewEmail(username, m.fromEmail)
 	to := mail.NewEmail(username, email)
 
-	tmpl, err := template.ParseFS(FS, "templates/"+templateFile)
+	tmpl, err := template.ParseFS(FS, "template/"+templateFile)
 	if err != nil {
 		return fmt.Errorf("failed to parse template: %w", err)
 	}
@@ -60,12 +60,16 @@ func (m *SendGridMailer) Send(templateFile, username string, email string, data 
 	for i := 0; i < maxRetries; i++ {
 		response, err := m.client.Send(message)
 		if err != nil {
-			log.Printf("Failed to send email: %v", err)
-
-			// backoff
+			log.Printf("Failed to send email (request error): %v", err)
 			time.Sleep(time.Second * time.Duration(i+1))
 			continue
 		}
+
+		if response.StatusCode < 200 || response.StatusCode >= 300 {
+			log.Printf("SendGrid API error: status=%d body=%s", response.StatusCode, response.Body)
+			return fmt.Errorf("sendgrid API returned status %d: %s", response.StatusCode, response.Body)
+		}
+
 		log.Printf("Email sent successfully: %v", response.StatusCode)
 		return nil
 	}
