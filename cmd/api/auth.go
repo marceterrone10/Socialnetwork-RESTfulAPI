@@ -4,10 +4,12 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"errors"
+	"fmt"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
+	"github.com/marceterrone10/social/internal/mailer"
 	"github.com/marceterrone10/social/internal/store"
 )
 
@@ -80,6 +82,34 @@ func (app *application) registerUserHandler(w http.ResponseWriter, r *http.Reque
 	userWithToken := UserWithToken{
 		User:  user,
 		Token: plainToken,
+	}
+
+	activationURL := fmt.Sprintf("%s/confirm/%s", app.config.frontendURL, plainToken)
+
+	isProdEnv := app.config.env == "production"
+	vars := struct {
+		Username      string
+		ActivationURL string
+	}{
+		Username:      user.Username,
+		ActivationURL: activationURL,
+	}
+
+	// enviar email
+	err = app.mailer.Send(mailer.UserWelcomeTemplate, user.Username, user.Email, vars, !isProdEnv)
+	if err != nil {
+		app.logger.Errorw("error sending email", "error", err)
+
+		//rollback de la creación del usuario si el email no se envía (patron SAGA)
+		// Es un patron de secuencia de transacciones locales. Cada una actualiza la DB local mediante transacciones ACID y ejecuta un evento para activar la siguiente. Si una falla, la saga ejecuta una serie de transacciones compensatorias que deshacen los cambios realizados por las transacciones anteriores.
+		// Si falla el envio de email, hay que borrar todo lo que haya en las tablas de la DB de user_invitations con respecto al usuario y tambien borrar al propio usuario de la tabla users.
+		if err := app.store.Users.Delete(ctx, user.ID); err != nil {
+			app.logger.Errorw("error deleting user", err)
+
+		}
+
+		app.internalServerError(w, r, err)
+		return
 	}
 
 	if err := app.writeResponse(w, http.StatusCreated, userWithToken); err != nil {

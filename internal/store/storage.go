@@ -25,6 +25,7 @@ type UserRepository interface { // aca vamos a tener las operaciones que vamos a
 	GetById(context.Context, int64) (*User, error)
 	CreateInvitation(ctx context.Context, user *User, token string, invitationExp time.Duration) error
 	ActivateUser(ctx context.Context, token string) error
+	Delete(ctx context.Context, userID int64) error
 }
 
 type CommentRepository interface {
