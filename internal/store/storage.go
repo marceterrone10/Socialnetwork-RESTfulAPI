@@ -23,6 +23,7 @@ type PostRepository interface { // aca vamos a tener las operaciones que vamos a
 type UserRepository interface { // aca vamos a tener las operaciones que vamos a hacer sobre los usuarios
 	Create(context.Context, *sql.Tx, *User) error
 	GetById(context.Context, int64) (*User, error)
+	GetByEmail(context.Context, string) (*User, error)
 	CreateInvitation(ctx context.Context, user *User, token string, invitationExp time.Duration) error
 	ActivateUser(ctx context.Context, token string) error
 	Delete(ctx context.Context, userID int64) error

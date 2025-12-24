@@ -16,6 +16,18 @@ definitions:
     - content
     - title
     type: object
+  main.CreateUserTokenPayload:
+    properties:
+      email:
+        type: string
+      password:
+        maxLength: 72
+        minLength: 8
+        type: string
+    required:
+    - email
+    - password
+    type: object
   main.FollowUser:
     properties:
       user_id:
@@ -127,6 +139,36 @@ info:
   termsOfService: http://swagger.io/terms/
   title: Social API
 paths:
+  /authentication/token:
+    post:
+      consumes:
+      - application/json
+      description: Create a new token for a user
+      parameters:
+      - description: Create token payload
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/main.CreateUserTokenPayload'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Token created successfully
+          schema:
+            type: string
+        "400":
+          description: Bad request
+          schema:
+            type: string
+        "500":
+          description: Internal server error
+          schema:
+            type: string
+      summary: Create a new token
+      tags:
+      - Authentication
   /authentication/user:
     post:
       consumes:

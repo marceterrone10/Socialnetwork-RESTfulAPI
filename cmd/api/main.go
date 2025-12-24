@@ -3,6 +3,7 @@ package main
 import (
 	"time"
 
+	"github.com/marceterrone10/social/internal/auth"
 	"github.com/marceterrone10/social/internal/db"
 	"github.com/marceterrone10/social/internal/env"
 	"github.com/marceterrone10/social/internal/mailer"
@@ -49,6 +50,18 @@ func main() {
 				apiKey: env.GetString("SENDGRID_API_KEY", ""),
 			},
 		},
+		auth: authConfig{
+			basic: basicAuthConfig{
+				username: env.GetString("BASIC_AUTH_USERNAME", "admin"),
+				password: env.GetString("BASIC_AUTH_PASSWORD", "password"),
+			},
+			token: tokenAuthConfig{
+				secret: env.GetString("TOKEN_SECRET", ""),
+				exp:    time.Hour * 24 * 3,
+				iss:    "socialnetwork",
+				aud:    "socialnetwork",
+			},
+		},
 	}
 
 	// Logger
@@ -74,12 +87,16 @@ func main() {
 	// instancia del mailer
 	mailer := mailer.NewSendGridMailer(cfg.mail.fromEmail, cfg.mail.sendGrid.apiKey)
 
+	// JWT authenticator
+	authenticator := auth.NewJWTAuthenticator(cfg.auth.token.secret, cfg.auth.token.aud, cfg.auth.token.iss)
+
 	// instancia de la app
 	app := &application{
-		config: cfg,
-		store:  storage, // paso el store a la aplicación
-		logger: logger,
-		mailer: mailer,
+		config:        cfg,
+		store:         storage, // paso el store a la aplicación
+		logger:        logger,
+		mailer:        mailer,
+		authenticator: authenticator,
 	}
 
 	// mount the routes for the API

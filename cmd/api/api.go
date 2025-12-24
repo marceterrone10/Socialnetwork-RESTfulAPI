@@ -9,6 +9,7 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 
 	"github.com/marceterrone10/social/docs"
+	"github.com/marceterrone10/social/internal/auth"
 	"github.com/marceterrone10/social/internal/mailer"
 	"github.com/marceterrone10/social/internal/store"
 	httpSwagger "github.com/swaggo/http-swagger" // http-swagger middleware
@@ -16,10 +17,11 @@ import (
 )
 
 type application struct {
-	config config
-	store  store.Storage // inyeccion de dependencias, paso el store a la aplicación
-	logger *zap.SugaredLogger
-	mailer mailer.Client
+	config        config
+	store         store.Storage // inyeccion de dependencias, paso el store a la aplicación
+	logger        *zap.SugaredLogger
+	mailer        mailer.Client
+	authenticator auth.Authenticator
 }
 
 type config struct {
@@ -29,8 +31,25 @@ type config struct {
 	apiURL      string
 	mail        mailConfig
 	frontendURL string
+	auth        authConfig
 }
 
+type authConfig struct {
+	basic basicAuthConfig
+	token tokenAuthConfig
+}
+
+type tokenAuthConfig struct {
+	secret string
+	exp    time.Duration
+	aud    string
+	iss    string
+}
+
+type basicAuthConfig struct {
+	username string
+	password string
+}
 type mailConfig struct {
 	exp       time.Duration
 	sendGrid  sendGridConfig
@@ -62,7 +81,7 @@ func (app *application) mount() *chi.Mux {
 
 	// route the API to the healthcheck handler
 	r.Route("/v1", func(r chi.Router) {
-		r.Get("/healthcheck", app.healthcheckHandler)
+		r.With(app.BasicAuthMiddleware()).Get("/healthcheck", app.healthcheckHandler)
 
 		docsURL := fmt.Sprintf("http://%s/v1/swagger/doc.json", app.config.apiURL)
 		r.Get("/swagger/*", httpSwagger.Handler(
@@ -99,6 +118,7 @@ func (app *application) mount() *chi.Mux {
 
 		r.Route("/authentication", func(r chi.Router) {
 			r.Post("/user", app.registerUserHandler)
+			r.Post("/token", app.createTokenHandler)
 		})
 	})
 	return r
