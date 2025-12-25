@@ -14,10 +14,6 @@ type userKey string
 
 const userCtx userKey = "user" // clave para el contexto del usuario
 
-type FollowUser struct {
-	UserID int64 `json:"user_id"`
-}
-
 // GetUser godoc
 //
 //	@Summary		Get a user by ID
@@ -55,15 +51,15 @@ func (app *application) getUserHandler(w http.ResponseWriter, r *http.Request) {
 //	@Router			/users/{userID}/follow [put]
 func (app *application) followUserHandler(w http.ResponseWriter, r *http.Request) {
 	followerUser := getUserFromCtx(r.Context())
-	var payload FollowUser
-	if err := readJSON(w, r, &payload); err != nil {
+	followedID, err := strconv.ParseInt(chi.URLParam(r, "userID"), 10, 64)
+	if err != nil {
 		app.badRequestError(w, r, err)
 		return
 	}
 
 	ctx := r.Context()
 
-	err := app.store.Follows.Follow(ctx, followerUser.ID, payload.UserID)
+	err = app.store.Follows.Follow(ctx, followerUser.ID, followedID)
 	if err != nil {
 		app.internalServerError(w, r, err)
 		return
@@ -92,15 +88,15 @@ func (app *application) followUserHandler(w http.ResponseWriter, r *http.Request
 //	@Router			/users/{userID}/unfollow [put]
 func (app *application) unfollowUserHandler(w http.ResponseWriter, r *http.Request) {
 	followerUser := getUserFromCtx(r.Context())
-	var payload FollowUser
-	if err := readJSON(w, r, &payload); err != nil {
+	followedID, err := strconv.ParseInt(chi.URLParam(r, "userID"), 10, 64)
+	if err != nil {
 		app.badRequestError(w, r, err)
 		return
 	}
 
 	ctx := r.Context()
 
-	err := app.store.Follows.Unfollow(ctx, followerUser.ID, payload.UserID)
+	err = app.store.Follows.Unfollow(ctx, followerUser.ID, followedID)
 	if err != nil {
 		app.internalServerError(w, r, err)
 		return

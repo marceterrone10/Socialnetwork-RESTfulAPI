@@ -90,7 +90,7 @@ func (s *UsersStore) GetById(ctx context.Context, id int64) (*User, error) {
 	var user User
 	query :=
 		`
-	SELECT id, username, email, created_at FROM users WHERE id = $1;
+	SELECT id, username, password, email, created_at FROM users WHERE id = $1;
 	`
 	ctx, cancel := context.WithTimeout(ctx, QueryTimeoutDuration)
 	defer cancel()
@@ -99,7 +99,7 @@ func (s *UsersStore) GetById(ctx context.Context, id int64) (*User, error) {
 		ctx,
 		query,
 		id,
-	).Scan(&user.ID, &user.Username, &user.Email, &user.CreatedAt)
+	).Scan(&user.ID, &user.Username, &user.Password.hash, &user.Email, &user.CreatedAt)
 	if err != nil {
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
@@ -263,4 +263,8 @@ func (s *UsersStore) GetByEmail(ctx context.Context, email string) (*User, error
 	}
 	return user, nil
 
+}
+
+func (p *password) Compare(text string) error {
+	return bcrypt.CompareHashAndPassword(p.hash, []byte(text))
 }
