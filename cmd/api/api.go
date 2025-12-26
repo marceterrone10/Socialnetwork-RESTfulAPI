@@ -95,8 +95,8 @@ func (app *application) mount() *chi.Mux {
 			r.Route("/{id}", func(r chi.Router) {
 				r.Use(app.postsContextMiddleware)
 				r.Get("/", app.getPostHandler)
-				r.Delete("/", app.deletePostHandler)
-				r.Patch("/", app.updatePostHandler)
+				r.Delete("/", app.CheckPostOwnership("admin", app.deletePostHandler))
+				r.Patch("/", app.CheckPostOwnership("moderator", app.updatePostHandler))
 
 			})
 		})

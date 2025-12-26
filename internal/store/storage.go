@@ -39,19 +39,25 @@ type FollowRepository interface {
 	Unfollow(context.Context, int64, int64) error
 }
 
+type RoleRepository interface {
+	GetByName(context.Context, string) (*Role, error)
+}
+
 type Storage struct { // inyección de dependencias de los repos
 	Posts    PostRepository
 	Users    UserRepository
 	Comments CommentRepository
 	Follows  FollowRepository
+	Roles    RoleRepository
 }
 
-func NewStorage(db *sql.DB) Storage {
+func NewStorage(db *sql.DB) Storage { // constructor del storage
 	return Storage{
 		Posts:    &PostsStore{db},
 		Users:    &UsersStore{db},
 		Comments: &CommentsStore{db},
 		Follows:  &FollowsStore{db},
+		Roles:    &RolesStore{db},
 	}
 }
 
