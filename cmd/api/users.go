@@ -27,7 +27,19 @@ const userCtx userKey = "user" // clave para el contexto del usuario
 //	@Failure		500	{object}	error
 //	@Router			/users/{id} [get]
 func (app *application) getUserHandler(w http.ResponseWriter, r *http.Request) {
-	user := getUserFromCtx(r.Context())
+	userID, err := strconv.ParseInt(chi.URLParam(r, "id"), 10, 64)
+	if err != nil || userID < 1 {
+		app.badRequestError(w, r, err)
+		return
+	}
+
+	ctx := r.Context()
+
+	user, err := app.getUserFromCache(ctx, userID) // obtenemos el usuario de la cache
+	if err != nil {
+		app.internalServerError(w, r, err)
+		return
+	}
 
 	if err := app.writeResponse(w, http.StatusOK, user); err != nil {
 		app.internalServerError(w, r, err)

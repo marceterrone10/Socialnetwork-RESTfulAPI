@@ -8,6 +8,8 @@ import (
 	"github.com/marceterrone10/social/internal/env"
 	"github.com/marceterrone10/social/internal/mailer"
 	"github.com/marceterrone10/social/internal/store"
+	"github.com/marceterrone10/social/internal/store/cache"
+	"github.com/redis/go-redis/v9"
 	"go.uber.org/zap"
 )
 
@@ -62,6 +64,12 @@ func main() {
 				aud:    "socialnetwork",
 			},
 		},
+		redis: redisConfig{
+			addr:    env.GetString("REDIS_ADDR", "localhost:6379"),
+			pw:      env.GetString("REDIS_PW", ""),
+			db:      env.GetInt("REDIS_DB", 0),
+			enabled: env.GetBool("REDIS_ENABLED", false),
+		},
 	}
 
 	// Logger
@@ -90,6 +98,15 @@ func main() {
 	// JWT authenticator
 	authenticator := auth.NewJWTAuthenticator(cfg.auth.token.secret, cfg.auth.token.aud, cfg.auth.token.iss)
 
+	// instancia de redis
+	var redisClient *redis.Client
+	if cfg.redis.enabled {
+		redisClient = cache.NewRedisClient(cfg.redis.addr, cfg.redis.pw, cfg.redis.db)
+		logger.Info("Connected to the redis")
+	}
+
+	cacheStorage := cache.NewRedisStorage(redisClient)
+
 	// instancia de la app
 	app := &application{
 		config:        cfg,
@@ -97,6 +114,7 @@ func main() {
 		logger:        logger,
 		mailer:        mailer,
 		authenticator: authenticator,
+		cacheStorage:  cacheStorage,
 	}
 
 	// mount the routes for the API
