@@ -14,7 +14,7 @@ type Storage struct { // submodulo de storage para cache, estamos consumiendo de
 	}
 }
 
-func NewRedisStorage(rdb *redis.Client) Storage { // constructor del storage para cache
+func newRedisStorage(rdb *redis.Client) Storage { // constructor del storage para cache
 	return Storage{
 		Users: &UsersStore{rdb: rdb},
 	}

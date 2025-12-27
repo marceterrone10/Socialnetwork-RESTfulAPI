@@ -1,7 +1,9 @@
 package main
 
 import (
+	"fmt"
 	"net/http"
+	"time"
 )
 
 func (app *application) internalServerError(w http.ResponseWriter, r *http.Request, err error) {
@@ -35,4 +37,10 @@ func (app *application) unauthorizedBasicError(w http.ResponseWriter, r *http.Re
 func (app *application) forbiddenResponse(w http.ResponseWriter, r *http.Request) {
 	app.logger.Errorw("Forbidden error", "method", r.Method, "path", r.URL.Path)
 	errorJSON(w, http.StatusForbidden, "Forbidden")
+}
+
+func (app *application) tooManyRequestsError(w http.ResponseWriter, r *http.Request, retryAfter time.Duration) {
+	app.logger.Errorw("Too many requests error", "method", r.Method, "path", r.URL.Path, "retry_after", retryAfter)
+	w.Header().Set("Retry-After", fmt.Sprintf("%d", retryAfter.Seconds()))
+	errorJSON(w, http.StatusTooManyRequests, "Too many requests")
 }

@@ -7,6 +7,7 @@ import (
 	"github.com/marceterrone10/social/internal/db"
 	"github.com/marceterrone10/social/internal/env"
 	"github.com/marceterrone10/social/internal/mailer"
+	"github.com/marceterrone10/social/internal/ratelimiter"
 	"github.com/marceterrone10/social/internal/store"
 	"github.com/marceterrone10/social/internal/store/cache"
 	"github.com/redis/go-redis/v9"
@@ -70,6 +71,11 @@ func main() {
 			db:      env.GetInt("REDIS_DB", 0),
 			enabled: env.GetBool("REDIS_ENABLED", false),
 		},
+		rateLimiter: ratelimiter.Config{
+			RequestPerTimeFrame: env.GetInt("RATE_LIMITER_REQUEST_PER_TIME_FRAME", 100),
+			TimeFrame:           time.Second * 5,
+			Enabled:             env.GetBool("RATE_LIMITER_ENABLED", true),
+		},
 	}
 
 	// Logger
@@ -105,7 +111,13 @@ func main() {
 		logger.Info("Connected to the redis")
 	}
 
-	cacheStorage := cache.NewRedisStorage(redisClient)
+	cacheStorage := cache.newRedisStorage(redisClient)
+
+	// rate limiter
+	rateLimiter := ratelimiter.NewFixedWindowLimiter(
+		cfg.rateLimiter.RequestPerTimeFrame,
+		cfg.rateLimiter.TimeFrame,
+	)
 
 	// instancia de la app
 	app := &application{
@@ -115,6 +127,7 @@ func main() {
 		mailer:        mailer,
 		authenticator: authenticator,
 		cacheStorage:  cacheStorage,
+		rateLimiter:   rateLimiter,
 	}
 
 	// mount the routes for the API

@@ -11,6 +11,7 @@ import (
 	"github.com/marceterrone10/social/docs"
 	"github.com/marceterrone10/social/internal/auth"
 	"github.com/marceterrone10/social/internal/mailer"
+	"github.com/marceterrone10/social/internal/ratelimiter"
 	"github.com/marceterrone10/social/internal/store"
 	"github.com/marceterrone10/social/internal/store/cache"
 	httpSwagger "github.com/swaggo/http-swagger" // http-swagger middleware
@@ -24,6 +25,7 @@ type application struct {
 	mailer        mailer.Client
 	authenticator auth.Authenticator
 	cacheStorage  cache.Storage
+	rateLimiter   ratelimiter.Limiter
 }
 
 type config struct {
@@ -35,6 +37,7 @@ type config struct {
 	frontendURL string
 	auth        authConfig
 	redis       redisConfig
+	rateLimiter ratelimiter.Config
 }
 
 type redisConfig struct {
@@ -86,6 +89,7 @@ func (app *application) mount() *chi.Mux {
 	r.Use(middleware.RealIP)
 	r.Use(middleware.Recoverer)
 	r.Use(middleware.Logger)
+	r.Use(app.RateLimiterMiddleware)
 
 	r.Use(middleware.Timeout(60 * time.Second)) // middleware to timeout requests after 60 seconds
 
